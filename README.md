@@ -1,81 +1,159 @@
-# Transformer Question Answering
+🤖 Transformer Question Answering System
 
-A end-to-end Question Answering project using Transformer models (e.g., BERT, RoBERTa) built with PyTorch, Hugging Face Transformers, and Streamlit.
+A fine-tuned BERT model that performs extractive question answering — given a passage of text and a question, it locates and extracts the exact answer span directly from the passage.
 
-## Project Structure
+Built with 🤗 Hugging Face transformers, trained on the SQuAD dataset, and served through an interactive Streamlit web app.
 
-```text
+📌 Overview
+
+This project fine-tunes bert-base-uncased on the Stanford Question Answering Dataset (SQuAD) to build a model that can read a paragraph and pinpoint the exact words that answer a given question — no answer generation, just precise extraction.
+
+Example:
+
+Context: "BERT (Bidirectional Encoder Representations from Transformers) is a transformer-based machine learning technique for natural language processing pre-training developed by Google."
+
+Question: "Who developed BERT?"
+
+Answer: Google
+
+✨ Features
+🔧 End-to-end fine-tuning pipeline for BERT on SQuAD
+📊 Evaluation with official Exact Match (EM) and F1 metrics
+⚡ Single-example inference via Python
+🌐 Interactive web UI built with Streamlit
+📓 Exploratory Jupyter notebooks documenting the full development process
+🔄 Graceful fallback to the base pretrained model if no fine-tuned checkpoint is found
+🗂️ Project Structure
 transformer-question-answering/
 │
-├── data/                  # Raw and processed datasets (e.g., SQuAD)
+├── app/
+│   └── app.py                        # Streamlit web application
 │
-├── notebooks/             # Step-by-step Jupyter Notebooks
+├── data/
+│   └── .gitkeep                      # Datasets are downloaded automatically
+│
+├── models/
+│   └── bert-squad-finetuned/         # Fine-tuned model (created after training)
+│       ├── config.json
+│       ├── model.safetensors
+│       ├── tokenizer.json
+│       └── tokenizer_config.json
+│
+├── notebooks/                        # Exploratory / development notebooks
 │   ├── 01_dataset_exploration.ipynb
 │   ├── 02_tokenization.ipynb
 │   ├── 03_bert_baseline.ipynb
 │   ├── 04_fine_tuning.ipynb
 │   └── 05_evaluation.ipynb
 │
-├── src/                   # Source code modules
-│   ├── data_preparation.py # Dataset loading and preprocessing
-│   ├── tokenizer.py        # Tokenizer utilities and feature extraction
-│   ├── train.py            # Training and fine-tuning pipeline
-│   ├── evaluate.py         # Model evaluation (Exact Match & F1)
-│   └── predict.py          # QA Inference pipeline
+├── src/
+│   ├── __init__.py
+│   ├── data_preparation.py           # Loads the SQuAD dataset
+│   ├── tokenizer.py                  # Tokenization & answer-span alignment
+│   ├── train.py                      # Fine-tuning pipeline
+│   ├── evaluate.py                   # EM & F1 evaluation
+│   └── predict.py                    # Single-example inference
 │
-├── models/                # Saved model checkpoints and tokenizer files
-│
-├── app/                   # Web Application
-│   └── app.py              # Streamlit demo user interface
-│
-├── requirements.txt       # Project dependencies
-├── README.md              # Project documentation
-└── .gitignore             # Git ignore rules
-```
+├── requirements.txt
+├── README.md
+└── .gitignore
+🛠️ Tech Stack
+Category	Tool
+Language	Python 3.9+
+Deep Learning	PyTorch
+Transformers	Hugging Face transformers
+Dataset	Hugging Face datasets (SQuAD)
+Evaluation	Hugging Face evaluate
+Web App	Streamlit
+Base Model	bert-base-uncased
+⚙️ Installation
 
-## Getting Started
+1. Clone the repository
 
-### 1. Installation
+bash
+git clone https://github.com/thimmareddygt7/Transformer_project.git
+cd Transformer_project
 
-Clone the repository and install the dependencies:
+2. Create a virtual environment (recommended)
 
-```bash
-cd transformer-question-answering
+bash
+python -m venv venv
+source venv/bin/activate      # On Windows: venv\Scripts\activate
+
+3. Install dependencies
+
+bash
 pip install -r requirements.txt
-```
+🚀 Usage
+1. Train the model
 
-### 2. Running Notebooks
+Fine-tunes bert-base-uncased on SQuAD and saves the result to models/bert-squad-finetuned/.
 
-Launch Jupyter Notebook to explore data, tokenization, training, and evaluation step-by-step:
-
-```bash
-jupyter notebook notebooks/
-```
-
-### 3. Training & Fine-Tuning
-
-Fine-tune BERT on the SQuAD dataset (saves to `./models/bert-squad-finetuned`):
-
-```bash
+bash
 python -m src.train
-```
 
-### 4. Evaluation
+⏱️ Training runs for 2 epochs. A GPU is strongly recommended — CPU training will be significantly slower.
 
-Evaluate the fine-tuned model on the SQuAD validation set (Exact Match & F1):
+2. Evaluate the model
 
-```bash
+Runs the fine-tuned model against a validation sample and prints Exact Match & F1 scores.
+
+bash
 python -m src.evaluate
-```
+3. Run a single prediction (script)
 
-### 5. Running Web App
+Quick sanity-check on one example directly from the terminal.
 
-Launch the interactive Streamlit QA demo **from the `transformer-question-answering/` directory**:
+bash
+python -m src.predict
+4. Launch the web app
 
-```bash
-python -m streamlit run app/app.py
-```
+Opens an interactive browser UI where you can paste any passage and ask any question.
 
-## License
+bash
+streamlit run app/app.py
 
-MIT License
+ℹ️ If no fine-tuned model is found, the app and scripts automatically fall back to the base bert-base-uncased model so everything still runs — just with lower accuracy.
+
+📈 Evaluation Metrics
+
+The model is evaluated using the official SQuAD metrics:
+
+Metric	Meaning
+Exact Match (EM)	% of predictions that match the ground-truth answer exactly
+F1 Score	Token-level overlap score, giving partial credit for close answers
+
+Run python -m src.evaluate to reproduce these scores on your fine-tuned checkpoint.
+
+🔮 How It Works
+Data Preparation — SQuAD context/question/answer triples are loaded via datasets.
+Tokenization — Text is converted into token IDs; the character-level answer span is mapped to token-level start/end positions (handling long passages via a sliding window).
+Fine-Tuning — BERT is trained with a QA head that predicts a start-token and end-token probability distribution over the input.
+Post-processing — At inference time, the highest-scoring valid (start, end) span is selected and decoded back into readable text.
+Serving — The trained model is loaded once and exposed via a Streamlit interface for interactive use.
+📓 Notebooks
+
+The notebooks/ folder documents the step-by-step exploration behind the final src/ code:
+
+Notebook	Purpose
+01_dataset_exploration.ipynb	First look at the SQuAD dataset structure
+02_tokenization.ipynb	Experiments with tokenization and offset mapping
+03_bert_baseline.ipynb	Testing the base, un-fine-tuned BERT model
+04_fine_tuning.ipynb	Early fine-tuning experiments
+05_evaluation.ipynb	Early evaluation experiments
+📋 Requirements
+
+See requirements.txt for the full list. Core dependencies include:
+
+torch
+transformers
+datasets
+evaluate
+streamlit
+🙏 Acknowledgements
+SQuAD Dataset — Rajpurkar et al., Stanford University
+Hugging Face Transformers
+BERT: Pre-training of Deep Bidirectional Transformers — Devlin et al., Google AI
+📄 License
+
+This project is open-source. Add your preferred license here (e.g., MIT).
