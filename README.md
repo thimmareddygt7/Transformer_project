@@ -1,3 +1,5 @@
+[Transformer_QA_Project_Explained.pdf](https://github.com/user-attachments/files/32698188/Transformer_QA_Project_Explained.pdf) Detailed Explanation 
+
 # 🤖 Transformer Question Answering System
 
 A fine-tuned BERT model for extractive question answering. Given a passage and a question, the system identifies the exact answer span inside the passage and returns it as a concise answer.
